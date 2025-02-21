@@ -1,6 +1,6 @@
 package com.example.speech.aiservice.vn.controller.http.restful;
 
-import com.example.speech.aiservice.vn.dto.WebCrawlResponseDTO;
+import com.example.speech.aiservice.vn.dto.response.WebCrawlResponseDTO;
 import com.example.speech.aiservice.vn.service.crawl.WebCrawlerService;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;

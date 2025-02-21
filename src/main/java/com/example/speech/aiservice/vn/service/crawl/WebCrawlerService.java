@@ -1,6 +1,6 @@
 package com.example.speech.aiservice.vn.service.crawl;
 
-import com.example.speech.aiservice.vn.dto.WebCrawlResponseDTO;
+import com.example.speech.aiservice.vn.dto.response.WebCrawlResponseDTO;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileWriterService;
 import com.example.speech.aiservice.vn.service.wait.WaitService;
@@ -39,11 +39,9 @@ public class WebCrawlerService {
 
         String content = doc.select("#svelte > div.tm-light.rd-ff-0.rd-fs-3.svelte-19vhflx > main > article:nth-child(5)").text();
 
-        String fileName = fileNameService.getAvailableFileName(directoryPath, baseFileName, fileExtension);
+        String contentFilePath = fileNameService.getAvailableFileName(directoryPath, baseFileName, fileExtension);
 
-        fileWriterService.writeToFile(directoryPath, fileName, content);
-
-        String contentFilePath = directoryPath + fileName;
+        fileWriterService.writeToFile(contentFilePath, content);
 
         return new WebCrawlResponseDTO("Crawling completed", url, contentFilePath);
 
