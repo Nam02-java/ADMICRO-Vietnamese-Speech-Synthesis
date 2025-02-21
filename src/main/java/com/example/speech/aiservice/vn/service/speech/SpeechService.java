@@ -1,6 +1,6 @@
 package com.example.speech.aiservice.vn.service.speech;
 
-import com.example.speech.aiservice.vn.dto.TextToSpeechResponseDTO;
+import com.example.speech.aiservice.vn.dto.response.TextToSpeechResponseDTO;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileReaderService;
 import com.example.speech.aiservice.vn.service.google.GoogleAudioDownloaderService;
@@ -31,7 +31,7 @@ public class SpeechService {
         this.googleAudioDownloaderService = googleAudioDownloaderService;
     }
 
-    public TextToSpeechResponseDTO textToSpeechResponseDTO(WebDriver driver, String url, String contentfilePath) throws InterruptedException, IOException {
+    public TextToSpeechResponseDTO textToSpeechResponseDTO(WebDriver driver, String url, String contentfilePath) throws IOException {
 
         driver.get(url);
 
@@ -50,11 +50,9 @@ public class SpeechService {
         String audioUrl = driver.findElement(By.id("audio")).getAttribute("src");
         System.out.println("Audio URL: " + audioUrl);
 
-        String fileName = fileNameService.getAvailableFileName(directoryPath, baseFileName, fileExtension);
+        String audioFilePath = fileNameService.getAvailableFileName(directoryPath, baseFileName, fileExtension);
 
-        googleAudioDownloaderService.download(audioUrl, directoryPath + fileName);
-
-        String audioFilePath = directoryPath + fileName;
+        googleAudioDownloaderService.download(audioUrl, audioFilePath);
 
         return new TextToSpeechResponseDTO("Successful conversion", url, audioUrl, audioFilePath);
     }

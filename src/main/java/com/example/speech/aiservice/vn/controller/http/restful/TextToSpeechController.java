@@ -1,6 +1,7 @@
 package com.example.speech.aiservice.vn.controller.http.restful;
 
-import com.example.speech.aiservice.vn.dto.TextToSpeechResponseDTO;
+import com.example.speech.aiservice.vn.dto.request.TextToSpeechRequestDTO;
+import com.example.speech.aiservice.vn.dto.response.TextToSpeechResponseDTO;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;
 import com.example.speech.aiservice.vn.service.speech.SpeechService;
@@ -31,15 +32,14 @@ public class TextToSpeechController {
     }
 
 
-    @GetMapping("/convert")
-    public ResponseEntity<TextToSpeechResponseDTO> convertTextToSpeech(@RequestParam String url,
-                                                                       @RequestHeader("filePath") String filePath) throws InterruptedException {
+    @PostMapping("/convert")
+    public ResponseEntity<TextToSpeechResponseDTO> convertTextToSpeech(@RequestBody TextToSpeechRequestDTO textToSpeechRequestDTO) throws InterruptedException {
         WebDriver chromeDriver = null;
         try {
             googleChromeLauncherService.openGoogleChrome();
             chromeDriver = webDriverLauncherService.initWebDriver();
 
-            TextToSpeechResponseDTO response = speechService.textToSpeechResponseDTO(chromeDriver, url, filePath);
+            TextToSpeechResponseDTO response = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechRequestDTO.getTextToSpeechUrl(), textToSpeechRequestDTO.getContentPath());
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {

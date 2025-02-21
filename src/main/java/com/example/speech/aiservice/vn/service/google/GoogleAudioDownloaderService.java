@@ -20,7 +20,7 @@ public class GoogleAudioDownloaderService {
         this.audioFileWriterService = audioFileWriterService;
     }
 
-    public void download(String audioUrl, String filePath) throws IOException {
+    public void download(String audioUrl, String audioFilePath) throws IOException {
         // Generate URL from audio path
         URL url = new URL(audioUrl);
 
@@ -32,7 +32,7 @@ public class GoogleAudioDownloaderService {
             // Get audio data
             InputStream inputStream = connection.getInputStream();
 
-            audioFileWriterService.writeToFile(inputStream, filePath);
+            audioFileWriterService.writeToFile(inputStream, audioFilePath);
 
         } else {
             System.out.println("Unable to load audio. Status code : " + connection.getResponseCode());
