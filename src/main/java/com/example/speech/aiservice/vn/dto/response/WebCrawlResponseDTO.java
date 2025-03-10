@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 //@AllArgsConstructor
 public class WebCrawlResponseDTO {
+
     @JsonProperty("message")
     private String message;
 

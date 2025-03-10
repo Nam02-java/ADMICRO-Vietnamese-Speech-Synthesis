@@ -1,6 +1,7 @@
 package com.example.speech.aiservice.vn.service.crawl;
 
 import com.example.speech.aiservice.vn.dto.response.WebCrawlResponseDTO;
+import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileWriterService;
 import com.example.speech.aiservice.vn.service.wait.WaitService;
@@ -16,7 +17,6 @@ public class WebCrawlerService {
     private final FileWriterService fileWriterService;
     private final WaitService waitService;
     private final String directoryPath = "E:\\CongViecHocTap\\Content\\";
-    private final String baseFileName = "content";
     private final String fileExtension = ".txt";
 
 
@@ -27,23 +27,27 @@ public class WebCrawlerService {
         this.waitService = waitService;
     }
 
-    public WebCrawlResponseDTO webCrawlResponseDTO(WebDriver driver, String url) throws InterruptedException {
+    public WebCrawlResponseDTO webCrawlResponseDTO(WebDriver driver, Chapter chapter) throws InterruptedException {
 
-        driver.get(url);
+        driver.get(chapter.getLink());
 
-        waitService.waitForSeconds(5); // Wait for the translation to be complete
+        waitService.waitForSeconds(15); // Wait for the translation to be complete
 
         String pageSource = driver.getPageSource();
 
         Document doc = Jsoup.parse(pageSource);
 
-        String content = doc.select("#svelte > div.tm-light.rd-ff-0.rd-fs-3.svelte-19vhflx > main > article:nth-child(5)").text();
+        String content = doc.select("#svelte > div.tm-light.rd-ff-0.rd-fs-3.svelte-19vhflx > main > article:nth-child(6)").text();
 
-        String contentFilePath = fileNameService.getAvailableFileName(directoryPath, baseFileName, fileExtension);
+        if (content.isEmpty()) {
+            content = doc.select("#svelte > div.tm-light.rd-ff-0.rd-fs-3.svelte-19vhflx > main > article:nth-child(5)").text();
+        }
+
+        String contentFilePath = fileNameService.getAvailableFileName(directoryPath, chapter.getTitle(), fileExtension);
 
         fileWriterService.writeToFile(contentFilePath, content);
 
-        return new WebCrawlResponseDTO("Crawling completed", url, contentFilePath);
+        return new WebCrawlResponseDTO("Crawling completed", chapter.getLink(), contentFilePath);
 
     }
 }

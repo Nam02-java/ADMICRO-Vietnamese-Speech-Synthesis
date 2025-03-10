@@ -1,6 +1,7 @@
 package com.example.speech.aiservice.vn.controller.http.restful;
 
 import com.example.speech.aiservice.vn.dto.response.WebCrawlResponseDTO;
+import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.service.crawl.WebCrawlerService;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;
@@ -34,12 +35,15 @@ public class WebCrawlerController {
 
     @GetMapping("/text")
     public ResponseEntity<WebCrawlResponseDTO> crawlText(@RequestParam String url) {
+        //set here for not warning
+        Chapter chapter = null;
+
         WebDriver chromeDriver = null;
         try {
-            googleChromeLauncherService.openGoogleChrome();
-            chromeDriver = webDriverLauncherService.initWebDriver();
+            //googleChromeLauncherService.openGoogleChrome();
+            //    chromeDriver = webDriverLauncherService.initWebDriver();
 
-            WebCrawlResponseDTO response = webCrawlerService.webCrawlResponseDTO(chromeDriver, url);
+            WebCrawlResponseDTO response = webCrawlerService.webCrawlResponseDTO(chromeDriver, chapter);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -47,7 +51,7 @@ public class WebCrawlerController {
 
         } finally {
             if (chromeDriver != null) {
-                webDriverLauncherService.shutDown();
+                webDriverLauncherService.shutDown(chromeDriver);
             }
             googleChromeLauncherService.shutdown();
         }

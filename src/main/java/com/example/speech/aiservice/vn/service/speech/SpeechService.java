@@ -1,6 +1,7 @@
 package com.example.speech.aiservice.vn.service.speech;
 
 import com.example.speech.aiservice.vn.dto.response.TextToSpeechResponseDTO;
+import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileReaderService;
 import com.example.speech.aiservice.vn.service.google.GoogleAudioDownloaderService;
@@ -20,7 +21,6 @@ public class SpeechService {
     private final WaitService waitService;
     private final GoogleAudioDownloaderService googleAudioDownloaderService;
     private final String directoryPath = "E:\\CongViecHocTap\\Voice\\";
-    private final String baseFileName = "voice";
     private final String fileExtension = ".mp4";
 
     @Autowired
@@ -31,29 +31,48 @@ public class SpeechService {
         this.googleAudioDownloaderService = googleAudioDownloaderService;
     }
 
-    public TextToSpeechResponseDTO textToSpeechResponseDTO(WebDriver driver, String url, String contentfilePath) throws IOException {
+    public TextToSpeechResponseDTO textToSpeechResponseDTO(WebDriver driver, String textToSpeechUrl, String contentfilePath, Chapter chapter) throws IOException {
 
-        driver.get(url);
+        driver.get(textToSpeechUrl);
 
-        waitService.waitForSeconds(5);
+        waitService.waitForSeconds(10);
 
         String content = fileReaderService.readFileContent(contentfilePath);
+        System.out.println(content);
 
-        WebElement textArea = driver.findElement(By.id("edit-content"));
+        WebElement textArea = driver.findElement(By.cssSelector("#edit-content"));
         textArea.sendKeys(content);
 
-        waitService.waitForSeconds(5);
+        waitService.waitForSeconds(2);
 
-        driver.findElement(By.id("submit_btn")).click();
+        if (textArea.isDisplayed() && textArea.isEnabled()) {
+            String contentValue = textArea.getAttribute("value");
+            if (contentValue == null || contentValue.trim().isEmpty()) {
+                System.out.println("TextArea is empty.");
+            } else {
+                System.out.println("TextArea contains: " + contentValue);
+            }
+        } else {
+            System.out.println("TextArea is not available.");
+        }
+
         waitService.waitForSeconds(10);
+        driver.findElement(By.id("submit_btn")).click();
+        waitService.waitForSeconds(15);
+        driver.findElement(By.id("submit_btn")).click();
+        waitService.waitForSeconds(15);
+        driver.findElement(By.id("submit_btn")).click();
+        waitService.waitForSeconds(15);
 
         String audioUrl = driver.findElement(By.id("audio")).getAttribute("src");
         System.out.println("Audio URL: " + audioUrl);
 
-        String audioFilePath = fileNameService.getAvailableFileName(directoryPath, baseFileName, fileExtension);
+        String audioFilePath = fileNameService.getAvailableFileName(directoryPath, chapter.getTitle(), fileExtension);
 
         googleAudioDownloaderService.download(audioUrl, audioFilePath);
 
-        return new TextToSpeechResponseDTO("Successful conversion", url, audioUrl, audioFilePath);
+        waitService.waitForSeconds(10);
+
+        return new TextToSpeechResponseDTO("Successful conversion", textToSpeechUrl, audioUrl, audioFilePath);
     }
 }

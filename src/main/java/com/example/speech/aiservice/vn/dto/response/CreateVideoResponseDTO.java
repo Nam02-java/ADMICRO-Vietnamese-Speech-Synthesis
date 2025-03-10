@@ -18,16 +18,16 @@ public class CreateVideoResponseDTO {
     @JsonProperty("image_path")
     private String imagePath;
 
-    @JsonProperty("video_path")
-    private String videoPath;
+    @JsonProperty("audio_path")
+    private String audioPath;
 
     @JsonProperty("created_video_file_path")
     private String createdVideoFilePath;
 
-    public CreateVideoResponseDTO(String message, String imagePath, String videoPath, String createdVideoFilePath) {
+    public CreateVideoResponseDTO(String message, String imagePath, String audioPath, String createdVideoFilePath) {
         this.message = message;
         this.imagePath = imagePath;
-        this.videoPath = videoPath;
+        this.audioPath = audioPath;
         this.createdVideoFilePath = createdVideoFilePath;
     }
 

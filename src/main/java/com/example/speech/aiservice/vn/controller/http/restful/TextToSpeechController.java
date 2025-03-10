@@ -2,6 +2,7 @@ package com.example.speech.aiservice.vn.controller.http.restful;
 
 import com.example.speech.aiservice.vn.dto.request.TextToSpeechRequestDTO;
 import com.example.speech.aiservice.vn.dto.response.TextToSpeechResponseDTO;
+import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;
 import com.example.speech.aiservice.vn.service.speech.SpeechService;
@@ -35,11 +36,16 @@ public class TextToSpeechController {
     @PostMapping("/convert")
     public ResponseEntity<TextToSpeechResponseDTO> convertTextToSpeech(@RequestBody TextToSpeechRequestDTO textToSpeechRequestDTO) throws InterruptedException {
         WebDriver chromeDriver = null;
-        try {
-            googleChromeLauncherService.openGoogleChrome();
-            chromeDriver = webDriverLauncherService.initWebDriver();
 
-            TextToSpeechResponseDTO response = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechRequestDTO.getTextToSpeechUrl(), textToSpeechRequestDTO.getContentPath());
+
+        //set here for not warning
+        Chapter chapter = null;
+
+        try {
+            //   googleChromeLauncherService.openGoogleChrome();
+            // chromeDriver = webDriverLauncherService.initWebDriver();
+
+            TextToSpeechResponseDTO response = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechRequestDTO.getTextToSpeechUrl(), textToSpeechRequestDTO.getContentPath(), chapter);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -47,7 +53,7 @@ public class TextToSpeechController {
                     .body(new TextToSpeechResponseDTO("Error", null, null, null));
         } finally {
             if (chromeDriver != null) {
-                webDriverLauncherService.shutDown();
+                webDriverLauncherService.shutDown(chromeDriver);
             }
             googleChromeLauncherService.shutdown();
         }

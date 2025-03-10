@@ -6,25 +6,19 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
 @Service
-public class WebDriverLauncherService  {
+public class WebDriverLauncherService {
 
-    private WebDriver driver;
 
-    public WebDriver initWebDriver() {
-
+    public WebDriver initWebDriver(String localhost) {
         ChromeOptions options = new ChromeOptions();
-        options.setExperimentalOption("debuggerAddress", "localhost:9222");
+        options.setExperimentalOption("debuggerAddress", "localhost:" + localhost);
 
-        driver = new ChromeDriver(options);
-
-        return driver;
+        return new ChromeDriver(options);
     }
 
-
-    public void shutDown() {
+    public void shutDown(WebDriver driver) {
         if (driver != null) {
             driver.quit();
-            driver = null;
         }
     }
 }

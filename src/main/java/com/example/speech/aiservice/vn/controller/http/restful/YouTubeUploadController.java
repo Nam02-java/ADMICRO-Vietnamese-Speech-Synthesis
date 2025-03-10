@@ -23,8 +23,9 @@ public class YouTubeUploadController {
     @PostMapping("/upload")
     public ResponseEntity<YoutubeUploadResponseDTO> uploadVideo(@RequestBody UploadVideoRequestDTO uploadRequestDTO) {
         try {
-            YoutubeUploadResponseDTO response = youtubeUploadService.upload(uploadRequestDTO.getVideoFilePath());
-            return ResponseEntity.ok(response);
+            //YoutubeUploadResponseDTO response = youtubeUploadService.upload(uploadRequestDTO.getVideoFilePath());
+            //  return ResponseEntity.ok(response);
+            return null;
         } catch (Exception e) {
             System.out.println(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

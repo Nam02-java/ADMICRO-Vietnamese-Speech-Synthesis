@@ -9,12 +9,15 @@ public class GoogleChromeLauncherService {
 
     private Process process;
     private String chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
-    private String userDataDir = "C:\\selenium_chrome";
+    private String userDataDir = "C:\\ChromeProfiles\\";
 
-    public void openGoogleChrome() throws IOException {
-        String command = chromePath + " --remote-debugging-port=9222 --user-data-dir=" + userDataDir + " --headless";
+    public void openGoogleChrome(String port, String seleniumFileName) throws IOException {
+        String command = chromePath + " --remote-debugging-port=" + port + " --user-data-dir=" + userDataDir + seleniumFileName + " --headless";
+        System.out.println(command);
         process = Runtime.getRuntime().exec(command);
     }
+
+
 
     public void shutdown() {
         process.destroy();

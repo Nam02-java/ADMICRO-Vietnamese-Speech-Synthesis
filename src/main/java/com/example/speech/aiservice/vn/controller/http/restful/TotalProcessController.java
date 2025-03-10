@@ -2,6 +2,7 @@ package com.example.speech.aiservice.vn.controller.http.restful;
 
 import com.example.speech.aiservice.vn.dto.request.FullProcessRequestDTO;
 import com.example.speech.aiservice.vn.dto.response.*;
+import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.service.crawl.WebCrawlerService;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;
@@ -41,25 +42,30 @@ public class TotalProcessController {
     public ResponseEntity<FullProcessResponseDTO> startFullProcess(@RequestBody FullProcessRequestDTO request) {
         WebDriver chromeDriver = null;
         try {
-            googleChromeLauncherService.openGoogleChrome();
-            chromeDriver = webDriverLauncherService.initWebDriver();
+
+            //set here for not warning
+            Chapter chapter = null;
+
+            // googleChromeLauncherService.openGoogleChrome();
+            //chromeDriver = webDriverLauncherService.initWebDriver();
 
             // Crawl data on Chivi.App website
-            WebCrawlResponseDTO webCrawlResponseDTO = webCrawlerService.webCrawlResponseDTO(chromeDriver, request.getCrawlUrl());
+            WebCrawlResponseDTO webCrawlResponseDTO = webCrawlerService.webCrawlResponseDTO(chromeDriver, chapter);
 
             // Convert text to speech with ADMICRO | Vietnamese Speech Synthesis
-            TextToSpeechResponseDTO textToSpeechResponseDTO = speechService.textToSpeechResponseDTO(chromeDriver, request.getTextToSpeechUrl(), webCrawlResponseDTO.getContentFilePath());
+            TextToSpeechResponseDTO textToSpeechResponseDTO = speechService.textToSpeechResponseDTO(chromeDriver, request.getTextToSpeechUrl(), "test", chapter);
 
             // Create videos using mp4 files combined with photos
             String imagePath = "E:\\CongViecHocTap\\Picture\\picture.png";
-            CreateVideoResponseDTO createVideoResponseDTO = videoCreationService.createVideoResponseDTO(textToSpeechResponseDTO.getFilePath(),imagePath);
+            CreateVideoResponseDTO createVideoResponseDTO = videoCreationService.createVideoResponseDTO(textToSpeechResponseDTO.getFilePath(), imagePath,null);
 
             // Upload video to youtube with youtube data API
-            YoutubeUploadResponseDTO youtubeUploadResponseDTO = youtubeUploadService.upload(createVideoResponseDTO.getCreatedVideoFilePath());
+            YoutubeUploadResponseDTO youtubeUploadResponseDTO = youtubeUploadService.upload(createVideoResponseDTO.getCreatedVideoFilePath(), null, chapter);
 
             // Aggregated DTO response
             FullProcessResponseDTO fullProcessResponse = new FullProcessResponseDTO(webCrawlResponseDTO, textToSpeechResponseDTO, createVideoResponseDTO, youtubeUploadResponseDTO);
 
+            System.out.println(fullProcessResponse);
             return ResponseEntity.ok(fullProcessResponse);
 
         } catch (Exception e) {
@@ -67,7 +73,7 @@ public class TotalProcessController {
 
         } finally {
             if (chromeDriver != null) {
-                webDriverLauncherService.shutDown();
+                webDriverLauncherService.shutDown(chromeDriver);
             }
             googleChromeLauncherService.shutdown();
         }

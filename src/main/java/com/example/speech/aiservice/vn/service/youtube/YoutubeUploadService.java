@@ -2,6 +2,8 @@ package com.example.speech.aiservice.vn.service.youtube;
 
 
 import com.example.speech.aiservice.vn.dto.response.YoutubeUploadResponseDTO;
+import com.example.speech.aiservice.vn.model.entity.Chapter;
+import com.example.speech.aiservice.vn.model.entity.Novel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +21,10 @@ public class YoutubeUploadService {
         this.youTubeUploader = youTubeUploader;
     }
 
-
-    public YoutubeUploadResponseDTO upload(String videoFilePath) {
+    public YoutubeUploadResponseDTO upload(String videoFilePath, Novel novel, Chapter chapter) {
         try {
-            String title = Paths.get(videoFilePath).getFileName().toString();
-            String description = "https://speech.aiservice.vn/tts/tools/demo";
+            String title = chapter.getTitle();
+            String description = novel.getTitle();
             String tags = "api, java, upload";
             String privacyStatus = "public"; // "public", "private", "unlisted"
 

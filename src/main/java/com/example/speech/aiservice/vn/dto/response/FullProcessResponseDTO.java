@@ -11,12 +11,23 @@ import lombok.Setter;
 //@AllArgsConstructor
 public class FullProcessResponseDTO {
 
-    public FullProcessResponseDTO(WebCrawlResponseDTO webCrawlResponseDTO, TextToSpeechResponseDTO textToSpeechResponseDTO, CreateVideoResponseDTO createVideoResponseDTO, YoutubeUploadResponseDTO youtubeUploadResponseDTO) {
+    public FullProcessResponseDTO( WebCrawlResponseDTO webCrawlResponseDTO, TextToSpeechResponseDTO textToSpeechResponseDTO, CreateVideoResponseDTO createVideoResponseDTO, YoutubeUploadResponseDTO youtubeUploadResponseDTO) {
         this.webCrawlResponseDTO = webCrawlResponseDTO;
         this.textToSpeechResponseDTO = textToSpeechResponseDTO;
         this.createVideoResponseDTO = createVideoResponseDTO;
         this.youtubeUploadResponseDTO = youtubeUploadResponseDTO;
     }
+
+    public FullProcessResponseDTO(LoginResponseDTO loginResponseDTO, WebCrawlResponseDTO webCrawlResponseDTO, TextToSpeechResponseDTO textToSpeechResponseDTO, CreateVideoResponseDTO createVideoResponseDTO, YoutubeUploadResponseDTO youtubeUploadResponseDTO) {
+        this.loginResponseDTO = loginResponseDTO;
+        this.webCrawlResponseDTO = webCrawlResponseDTO;
+        this.textToSpeechResponseDTO = textToSpeechResponseDTO;
+        this.createVideoResponseDTO = createVideoResponseDTO;
+        this.youtubeUploadResponseDTO = youtubeUploadResponseDTO;
+    }
+
+    @JsonProperty("login_response")
+    private LoginResponseDTO loginResponseDTO;
 
     @JsonProperty("web_crawl_response")
     private WebCrawlResponseDTO webCrawlResponseDTO;

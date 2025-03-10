@@ -22,31 +22,39 @@ import java.util.Collections;
 
 @Service
 public class OAuthHelper {
-    private  String CLIENT_SECRET_FILE = "E:\\CongViecHocTap\\OAuth JSON\\client_secret_267380930072-coupu92dabi2djrnpv3a2rdcn319grmv.apps.googleusercontent.com.json"; // ⚠️ Thay bằng file OAuth JSON của bạn
-    private  String TOKENS_DIRECTORY_PATH = "E:\\CongViecHocTap\\Token"; // Save token after first login
-
-    private JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final String CLIENT_SECRET_FILE = "E:\\CongViecHocTap\\OAuth JSON\\client_secret_234892455390-lqobndkg1726det73adkrouvhvc11q81.apps.googleusercontent.com.json";
+    private static final String TOKENS_DIRECTORY_PATH = "E:\\CongViecHocTap\\Token"; // Lưu token
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
     private Credential authorize() throws IOException, GeneralSecurityException {
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new FileReader(CLIENT_SECRET_FILE));
 
-        // Load client_secret.json
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
-                JSON_FACTORY, new FileReader(CLIENT_SECRET_FILE));
-
-        // Create authentication flow
+        // Tạo flow xác thực OAuth2
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 httpTransport, JSON_FACTORY, clientSecrets,
                 Collections.singletonList(YouTubeScopes.YOUTUBE_UPLOAD))
-                .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
+                .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH))) // Lưu token
                 .setAccessType("offline")
                 .build();
 
-        // Open a browser to authenticate
-        return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver.Builder().setPort(8888).build()).authorize("user");
+        // Kiểm tra xem đã có token chưa
+        Credential credential = flow.loadCredential("user");
+        if (credential != null && credential.getRefreshToken() != null) {
+            // Nếu đã có refresh_token, chỉ cần làm mới access_token
+            credential.refreshToken();
+            return credential;
+        }
+
+        // Nếu chưa có, mở trình duyệt để lấy token mới
+        return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver.Builder()
+                .setPort(8888)
+                .setCallbackPath("/")
+                .build()).authorize("user");
     }
 
-    private YouTube getService() throws IOException, GeneralSecurityException {
+
+    public YouTube getService() throws IOException, GeneralSecurityException {
         return new YouTube.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY, authorize())
                 .setApplicationName("YouTubeUploader")
