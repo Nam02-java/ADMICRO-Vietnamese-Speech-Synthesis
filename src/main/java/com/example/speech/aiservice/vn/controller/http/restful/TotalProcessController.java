@@ -50,14 +50,14 @@ public class TotalProcessController {
             //chromeDriver = webDriverLauncherService.initWebDriver();
 
             // Crawl data on Chivi.App website
-            WebCrawlResponseDTO webCrawlResponseDTO = webCrawlerService.webCrawlResponseDTO(chromeDriver, null, chapter);
+            WebCrawlResponseDTO webCrawlResponseDTO = webCrawlerService.webCrawlResponseDTO(chromeDriver, chapter);
 
             // Convert text to speech with ADMICRO | Vietnamese Speech Synthesis
-            TextToSpeechResponseDTO textToSpeechResponseDTO = speechService.textToSpeechResponseDTO(chromeDriver, request.getTextToSpeechUrl(), "test", null, chapter);
+            TextToSpeechResponseDTO textToSpeechResponseDTO = speechService.textToSpeechResponseDTO(chromeDriver, request.getTextToSpeechUrl(), "test", chapter);
 
             // Create videos using mp4 files combined with photos
             String imagePath = "E:\\CongViecHocTap\\Picture\\picture.png";
-            CreateVideoResponseDTO createVideoResponseDTO = videoCreationService.createVideoResponseDTO(textToSpeechResponseDTO.getFilePath(), imagePath,  null, null);
+            CreateVideoResponseDTO createVideoResponseDTO = videoCreationService.createVideoResponseDTO(textToSpeechResponseDTO.getFilePath(), imagePath,null);
 
             // Upload video to youtube with youtube data API
             YoutubeUploadResponseDTO youtubeUploadResponseDTO = youtubeUploadService.upload(createVideoResponseDTO.getCreatedVideoFilePath(), null, chapter);

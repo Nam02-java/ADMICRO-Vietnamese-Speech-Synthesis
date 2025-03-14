@@ -5,7 +5,7 @@ import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.model.entity.Novel;
 import com.example.speech.aiservice.vn.service.account.LoginCheckerService;
 import com.example.speech.aiservice.vn.service.account.LoginService;
-import com.example.speech.aiservice.vn.service.repositoryService.ChapterService;
+import com.example.speech.aiservice.vn.service.chapter.ChapterService;
 import com.example.speech.aiservice.vn.service.crawl.WebCrawlerService;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;
@@ -16,6 +16,7 @@ import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
 
 @Service
 @Scope("prototype") // Create a new instance every time you call
@@ -29,6 +30,7 @@ public class FullWorkFlow {
     private final VideoCreationService videoCreationService;
     private final YoutubeUploadService youtubeUploadService;
     private final ChapterService chapterService;
+
 
     // Constructor Injection
     @Autowired
@@ -44,11 +46,12 @@ public class FullWorkFlow {
         this.chapterService = chapterService;
     }
 
-    public void runProcess(String port, String seleniumFileName, Novel novel, Chapter chapter, String imagePath) {
-        FullProcessResponseDTO fullProcessResponseDTO = fullProcessResponseDTO(port, seleniumFileName, novel, chapter, imagePath);
+    public void runProcess(String port, String seleniumFileName, Novel novel, Chapter chapter) {
+        FullProcessResponseDTO fullProcessResponseDTO = fullProcessResponseDTO(port, seleniumFileName, novel, chapter);
     }
 
-    private FullProcessResponseDTO fullProcessResponseDTO(String port, String seleniumFileName, Novel novel, Chapter chapter, String imagePath) {
+
+    private FullProcessResponseDTO fullProcessResponseDTO(String port, String seleniumFileName, Novel novel, Chapter chapter) {
         WebDriver chromeDriver = null;
         String novelUrl = "https://chivi.app/";
         String textToSpeechUrl = "https://speech.aiservice.vn/tts/tools/demo";
@@ -73,14 +76,16 @@ public class FullWorkFlow {
                 System.out.println(Thread.currentThread().getId() + " - " + loginResponseDTO.getMessage());
             }
 
+
             // Crawl data on Chivi.App website
-            WebCrawlResponseDTO webCrawlResponseDTO = webCrawlerService.webCrawlResponseDTO(chromeDriver, novel, chapter);
+            WebCrawlResponseDTO webCrawlResponseDTO = webCrawlerService.webCrawlResponseDTO(chromeDriver, chapter);
 
             // Convert text to speech with ADMICRO | Vietnamese Speech Synthesis
-            TextToSpeechResponseDTO textToSpeechResponseDTO = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechUrl, webCrawlResponseDTO.getContentFilePath(), novel, chapter);
+            TextToSpeechResponseDTO textToSpeechResponseDTO = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechUrl, webCrawlResponseDTO.getContentFilePath(), chapter);
 
             // Create videos using mp4 files combined with photos
-            CreateVideoResponseDTO createVideoResponseDTO = videoCreationService.createVideoResponseDTO(textToSpeechResponseDTO.getFilePath(), imagePath, novel, chapter);
+            String imagePath = "E:\\CongViecHocTap\\Picture\\picture.png";
+            CreateVideoResponseDTO createVideoResponseDTO = videoCreationService.createVideoResponseDTO(textToSpeechResponseDTO.getFilePath(), imagePath, chapter);
 
             //Upload video to youtube with youtube data API
             YoutubeUploadResponseDTO youtubeUploadResponseDTO = youtubeUploadService.upload(createVideoResponseDTO.getCreatedVideoFilePath(), novel, chapter);

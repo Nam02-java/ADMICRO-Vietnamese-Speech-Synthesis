@@ -45,7 +45,7 @@ public class TextToSpeechController {
             //   googleChromeLauncherService.openGoogleChrome();
             // chromeDriver = webDriverLauncherService.initWebDriver();
 
-            TextToSpeechResponseDTO response = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechRequestDTO.getTextToSpeechUrl(), textToSpeechRequestDTO.getContentPath(), null, chapter);
+            TextToSpeechResponseDTO response = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechRequestDTO.getTextToSpeechUrl(), textToSpeechRequestDTO.getContentPath(), chapter);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {

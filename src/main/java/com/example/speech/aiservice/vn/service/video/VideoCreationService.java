@@ -2,13 +2,11 @@ package com.example.speech.aiservice.vn.service.video;
 
 import com.example.speech.aiservice.vn.dto.response.CreateVideoResponseDTO;
 import com.example.speech.aiservice.vn.model.entity.Chapter;
-import com.example.speech.aiservice.vn.model.entity.Novel;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.UUID;
@@ -26,26 +24,14 @@ public class VideoCreationService {
         this.fileNameService = fileNameService;
     }
 
-    public CreateVideoResponseDTO createVideoResponseDTO(String audioPath, String imagePath, Novel novel, Chapter chapter) {
+    public CreateVideoResponseDTO createVideoResponseDTO(String audioPath, String imagePath, Chapter chapter) {
 
         if (audioPath == null) {
             System.out.println("⚠️ No video files found!");
             return new CreateVideoResponseDTO("⚠️ No video files found!", null, null, null);
         }
 
-
-
-        // Tạo thư mục cho bộ truyện nếu chưa tồn tại
-        String safeNovelTitle = fileNameService.sanitizeFileName(novel.getTitle());
-        String novelDirectory = uploadDirectoryPath + File.separator + safeNovelTitle;
-        fileNameService.ensureDirectoryExists(novelDirectory);
-
-        // Xử lý tên file chương hợp lệ
-        String safeChapterTitle = fileNameService.sanitizeFileName(chapter.getTitle()) + fileExtension;
-        String audioFilePath = novelDirectory + File.separator + safeChapterTitle;
-
-
-        String videoFilePath = fileNameService.getAvailableFileName(audioFilePath, chapter.getTitle(), fileExtension);
+        String videoFilePath = fileNameService.getAvailableFileName(uploadDirectoryPath, chapter.getTitle(), fileExtension);
 
         // FFmpeg command
         String command = "\"" + ffmpegPath + "\" -loop 1 -i \"" + imagePath + "\" -i \"" + audioPath +

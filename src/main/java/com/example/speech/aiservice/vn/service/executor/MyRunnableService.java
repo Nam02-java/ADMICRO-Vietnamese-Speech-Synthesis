@@ -11,21 +11,19 @@ public class MyRunnableService implements Runnable {
     private final Novel novel;
     private final Chapter chapter;
 
-    private final String imagePath;
 
-    public MyRunnableService(FullWorkFlow fullWorkFlow, String port, String seleniumFileName, Novel novel, Chapter chapter, String imagePath) {
+    public MyRunnableService(FullWorkFlow fullWorkFlow, String port, String seleniumFileName, Novel novel, Chapter chapter) {
         this.fullWorkFlow = fullWorkFlow;
         this.port = port;
         this.seleniumFileName = seleniumFileName;
         this.novel = novel;
         this.chapter = chapter;
-        this.imagePath = imagePath;
     }
 
     @Override
     public void run() {
         System.out.println("run : " + Thread.currentThread().getId());
-        fullWorkFlow.runProcess(port, seleniumFileName, novel, chapter,imagePath);
+        fullWorkFlow.runProcess(port, seleniumFileName, novel, chapter);
 
     }
 }

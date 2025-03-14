@@ -43,7 +43,7 @@ public class WebCrawlerController {
             //googleChromeLauncherService.openGoogleChrome();
             //    chromeDriver = webDriverLauncherService.initWebDriver();
 
-            WebCrawlResponseDTO response = webCrawlerService.webCrawlResponseDTO(chromeDriver, null, chapter);
+            WebCrawlResponseDTO response = webCrawlerService.webCrawlResponseDTO(chromeDriver, chapter);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

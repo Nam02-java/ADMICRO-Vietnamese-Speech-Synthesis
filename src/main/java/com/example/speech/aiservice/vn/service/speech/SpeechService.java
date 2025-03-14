@@ -2,7 +2,6 @@ package com.example.speech.aiservice.vn.service.speech;
 
 import com.example.speech.aiservice.vn.dto.response.TextToSpeechResponseDTO;
 import com.example.speech.aiservice.vn.model.entity.Chapter;
-import com.example.speech.aiservice.vn.model.entity.Novel;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileReaderService;
 import com.example.speech.aiservice.vn.service.google.GoogleAudioDownloaderService;
@@ -13,7 +12,6 @@ import org.openqa.selenium.WebElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 
 @Service
@@ -33,7 +31,7 @@ public class SpeechService {
         this.googleAudioDownloaderService = googleAudioDownloaderService;
     }
 
-    public TextToSpeechResponseDTO textToSpeechResponseDTO(WebDriver driver, String textToSpeechUrl, String contentfilePath, Novel novel, Chapter chapter) throws IOException {
+    public TextToSpeechResponseDTO textToSpeechResponseDTO(WebDriver driver, String textToSpeechUrl, String contentfilePath, Chapter chapter) throws IOException {
 
         driver.get(textToSpeechUrl);
 
@@ -69,18 +67,7 @@ public class SpeechService {
         String audioUrl = driver.findElement(By.id("audio")).getAttribute("src");
         System.out.println("Audio URL: " + audioUrl);
 
-        // Tạo thư mục cho bộ truyện nếu chưa tồn tại
-        String safeNovelTitle = fileNameService.sanitizeFileName(novel.getTitle());
-        String novelDirectory = directoryPath + File.separator + safeNovelTitle;
-        fileNameService.ensureDirectoryExists(novelDirectory);
-
-        // Xử lý tên file chương hợp lệ
-        String safeChapterTitle = fileNameService.sanitizeFileName(chapter.getTitle()) + fileExtension;
-        String audioFilePath = novelDirectory + File.separator + safeChapterTitle;
-
-
-        //String audioFilePath = fileNameService.getAvailableFileName(directoryPath, chapter.getTitle(), fileExtension);
-
+        String audioFilePath = fileNameService.getAvailableFileName(directoryPath, chapter.getTitle(), fileExtension);
 
         googleAudioDownloaderService.download(audioUrl, audioFilePath);
 
