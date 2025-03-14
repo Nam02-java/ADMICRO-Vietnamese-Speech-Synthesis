@@ -23,7 +23,7 @@ public class CreateVideoController {
     @PostMapping("/create")
     public ResponseEntity<CreateVideoResponseDTO> createVideo(@RequestBody CreateVideoRequestDTO createVideoRequestDTO) {
         try {
-            CreateVideoResponseDTO response = videoCreationService.createVideoResponseDTO(createVideoRequestDTO.getAudioPath(), createVideoRequestDTO.getImagePath(),null);
+            CreateVideoResponseDTO response = videoCreationService.createVideoResponseDTO(createVideoRequestDTO.getAudioPath(), createVideoRequestDTO.getImagePath(), null, null);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
