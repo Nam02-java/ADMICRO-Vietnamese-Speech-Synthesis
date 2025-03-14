@@ -2,6 +2,7 @@ package com.example.speech.aiservice.vn.service.crawl;
 
 import com.example.speech.aiservice.vn.dto.response.WebCrawlResponseDTO;
 import com.example.speech.aiservice.vn.model.entity.Chapter;
+import com.example.speech.aiservice.vn.model.entity.Novel;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileWriterService;
 import com.example.speech.aiservice.vn.service.wait.WaitService;
@@ -11,12 +12,14 @@ import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+
 @Service
 public class WebCrawlerService {
     private final FileNameService fileNameService;
     private final FileWriterService fileWriterService;
     private final WaitService waitService;
-    private final String directoryPath = "E:\\CongViecHocTap\\Content\\";
+    private String directoryPath = "E:\\CongViecHocTap\\Content\\";
     private final String fileExtension = ".txt";
 
 
@@ -27,7 +30,7 @@ public class WebCrawlerService {
         this.waitService = waitService;
     }
 
-    public WebCrawlResponseDTO webCrawlResponseDTO(WebDriver driver, Chapter chapter) throws InterruptedException {
+    public WebCrawlResponseDTO webCrawlResponseDTO(WebDriver driver, Novel novel, Chapter chapter) throws InterruptedException {
 
         driver.get(chapter.getLink());
 
@@ -43,14 +46,33 @@ public class WebCrawlerService {
             content = doc.select("#svelte > div.tm-light.rd-ff-0.rd-fs-3.svelte-19vhflx > main > article:nth-child(5)").text();
         }
 
-        String contentFilePath = fileNameService.getAvailableFileName(directoryPath, chapter.getTitle(), fileExtension);
+//        String safeNovelTitle = fileNameService.sanitizeFileName(novel.getTitle());
+//        String novelDirectory = directoryPath + File.separator + safeNovelTitle;
+//        fileNameService.ensureDirectoryExists(novelDirectory);
+//
+//        String safeChapterTitle = fileNameService.sanitizeFileName(chapter.getTitle());
+//
+//        String contentFilePath = fileNameService.getAvailableFileName(novelDirectory, safeChapterTitle, fileExtension);
+//
+//        fileWriterService.writeToFile(contentFilePath, content);
 
+        // Tạo thư mục cho bộ truyện nếu chưa tồn tại
+        String safeNovelTitle = fileNameService.sanitizeFileName(novel.getTitle());
+        String novelDirectory = directoryPath + File.separator + safeNovelTitle;
+        fileNameService.ensureDirectoryExists(novelDirectory);
+
+        // Xử lý tên file chương hợp lệ
+        String safeChapterTitle = fileNameService.sanitizeFileName(chapter.getTitle()) + fileExtension;
+        String contentFilePath = novelDirectory + File.separator + safeChapterTitle;
+
+        // Ghi nội dung chương vào file
         fileWriterService.writeToFile(contentFilePath, content);
 
         return new WebCrawlResponseDTO("Crawling completed", chapter.getLink(), contentFilePath);
 
     }
 }
+
 
 /**
  * researching

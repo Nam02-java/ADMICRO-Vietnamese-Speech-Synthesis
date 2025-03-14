@@ -12,11 +12,10 @@ public class GoogleChromeLauncherService {
     private String userDataDir = "C:\\ChromeProfiles\\";
 
     public void openGoogleChrome(String port, String seleniumFileName) throws IOException {
-        String command = chromePath + " --remote-debugging-port=" + port + " --user-data-dir=" + userDataDir + seleniumFileName + " --headless";
+        String command = chromePath + " --remote-debugging-port=" + port + " --user-data-dir=" + userDataDir + seleniumFileName + " -headless";
         System.out.println(command);
         process = Runtime.getRuntime().exec(command);
     }
-
 
 
     public void shutdown() {
