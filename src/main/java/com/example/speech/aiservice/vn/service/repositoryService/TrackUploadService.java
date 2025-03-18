@@ -48,12 +48,6 @@ public class TrackUploadService {
         trackUploadRepository.deleteById(id);
     }
 
-    public void clear(){
-        trackUploadRepository.deleteAll();
-    }
-
-
-
     @PostConstruct
     public void clearTrackingOnStartup() {
         System.out.println("Application started. Clearing tracked upload...");

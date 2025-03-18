@@ -37,7 +37,6 @@ public class PreProcessorService {
     private final NovelService novelService;
     private final ChapterService chapterService;
     private final TrackedNovelService trackedNovelService;
-    private final TrackUploadService trackUploadService;
     private final ExecutorService executorService;
     private final ApplicationContext applicationContext;
     private final SeleniumConfigService seleniumConfigService;
@@ -48,14 +47,13 @@ public class PreProcessorService {
     private final TimeDelay timeDelay;
 
     @Autowired
-    public PreProcessorService(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, WaitService waitService, NovelRepository novelRepository, ChapterRepository chapterRepository, NovelService novelService, ChapterService chapterService, TrackedNovelService trackedNovelService, TrackUploadService trackUploadService, ApplicationContext applicationContext, SeleniumConfigService seleniumConfigService, TaskScheduler taskScheduler, TimeDelay timeDelay) {
+    public PreProcessorService(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, WaitService waitService, NovelRepository novelRepository, ChapterRepository chapterRepository, NovelService novelService, ChapterService chapterService, TrackedNovelService trackedNovelService,  ApplicationContext applicationContext, SeleniumConfigService seleniumConfigService, TaskScheduler taskScheduler, TimeDelay timeDelay) {
         this.googleChromeLauncherService = googleChromeLauncherService;
         this.webDriverLauncherService = webDriverLauncherService;
         this.waitService = waitService;
         this.novelService = novelService;
         this.chapterService = chapterService;
         this.trackedNovelService = trackedNovelService;
-        this.trackUploadService = trackUploadService;
         this.applicationContext = applicationContext;
         this.seleniumConfigService = seleniumConfigService;
         this.taskScheduler = taskScheduler;
@@ -309,7 +307,6 @@ public class PreProcessorService {
 
     public void stopConditions() {
         trackedNovelService.clearTracking();
-        trackUploadService.clear();
         imagePath = null;
         stop = true;
     }

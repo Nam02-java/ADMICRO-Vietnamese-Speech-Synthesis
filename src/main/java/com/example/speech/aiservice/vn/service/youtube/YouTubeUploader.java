@@ -75,7 +75,6 @@ public class YouTubeUploader {
         while (true) {
             List<TrackUpload> trackUploadList = trackUploadService.findAll();
 
-
             if (trackUploadList.isEmpty()) {
                 break;
             }
