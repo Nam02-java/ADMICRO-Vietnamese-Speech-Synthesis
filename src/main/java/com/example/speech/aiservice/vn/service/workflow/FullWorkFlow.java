@@ -1,6 +1,7 @@
 package com.example.speech.aiservice.vn.service.workflow;
 
 import com.example.speech.aiservice.vn.dto.response.*;
+import com.example.speech.aiservice.vn.model.TrackUpload;
 import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.model.entity.Novel;
 import com.example.speech.aiservice.vn.service.account.LoginCheckerService;
@@ -8,6 +9,7 @@ import com.example.speech.aiservice.vn.service.account.LoginService;
 import com.example.speech.aiservice.vn.service.repositoryService.ChapterService;
 import com.example.speech.aiservice.vn.service.crawl.WebCrawlerService;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
+import com.example.speech.aiservice.vn.service.repositoryService.TrackUploadService;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;
 import com.example.speech.aiservice.vn.service.speech.SpeechService;
 import com.example.speech.aiservice.vn.service.video.VideoCreationService;
@@ -29,10 +31,11 @@ public class FullWorkFlow {
     private final VideoCreationService videoCreationService;
     private final YoutubeUploadService youtubeUploadService;
     private final ChapterService chapterService;
+    private final TrackUploadService trackUploadService;
 
     // Constructor Injection
     @Autowired
-    public FullWorkFlow(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, LoginCheckerService loginCheckerService, LoginService loginService, WebCrawlerService webCrawlerService, SpeechService speechService, VideoCreationService videoCreationService, YoutubeUploadService youtubeUploadService, ChapterService chapterService) {
+    public FullWorkFlow(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, LoginCheckerService loginCheckerService, LoginService loginService, WebCrawlerService webCrawlerService, SpeechService speechService, VideoCreationService videoCreationService, YoutubeUploadService youtubeUploadService, ChapterService chapterService, TrackUploadService trackUploadService) {
         this.googleChromeLauncherService = googleChromeLauncherService;
         this.webDriverLauncherService = webDriverLauncherService;
         this.loginCheckerService = loginCheckerService;
@@ -42,6 +45,7 @@ public class FullWorkFlow {
         this.videoCreationService = videoCreationService;
         this.youtubeUploadService = youtubeUploadService;
         this.chapterService = chapterService;
+        this.trackUploadService = trackUploadService;
     }
 
     public void runProcess(String port, String seleniumFileName, Novel novel, Chapter chapter, String imagePath) {
@@ -52,6 +56,13 @@ public class FullWorkFlow {
         WebDriver chromeDriver = null;
         String novelUrl = "https://chivi.app/";
         String textToSpeechUrl = "https://speech.aiservice.vn/tts/tools/demo";
+
+        trackUploadService.saveTrack(novel.getId(), chapter.getId());
+
+//        TrackUpload firstTrack = trackUploadService.findByNovelAndChapter(novel.getId(), chapter.getId());
+//        if (firstTrack != null) {
+//            trackUploadService.deleteById(firstTrack.getId());
+//        }
 
         try {
 

@@ -4,6 +4,7 @@ package com.example.speech.aiservice.vn.service.youtube;
 import com.example.speech.aiservice.vn.dto.response.YoutubeUploadResponseDTO;
 import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.model.entity.Novel;
+import com.example.speech.aiservice.vn.service.repositoryService.TrackUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,6 @@ import java.nio.file.Paths;
 
 @Service
 public class YoutubeUploadService {
-
     private final OAuthHelper oAuthHelper;
     private final YouTubeUploader youTubeUploader;
 
@@ -28,7 +28,7 @@ public class YoutubeUploadService {
             String tags = "api, java, upload";
             String privacyStatus = "public"; // "public", "private", "unlisted"
 
-            String uploadVideoURL = youTubeUploader.uploadVideo(videoFilePath, title, description, tags, privacyStatus);
+            String uploadVideoURL = youTubeUploader.uploadVideo(videoFilePath, novel, chapter, title, description, tags, privacyStatus);
 
             return new YoutubeUploadResponseDTO("Video uploaded successfully", uploadVideoURL, videoFilePath);
         } catch (Exception e) {

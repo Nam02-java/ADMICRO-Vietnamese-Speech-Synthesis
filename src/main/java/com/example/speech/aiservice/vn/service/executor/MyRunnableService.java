@@ -10,7 +10,6 @@ public class MyRunnableService implements Runnable {
     private final String seleniumFileName;
     private final Novel novel;
     private final Chapter chapter;
-
     private final String imagePath;
 
     public MyRunnableService(FullWorkFlow fullWorkFlow, String port, String seleniumFileName, Novel novel, Chapter chapter, String imagePath) {

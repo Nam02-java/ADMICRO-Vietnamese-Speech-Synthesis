@@ -1,5 +1,11 @@
 package com.example.speech.aiservice.vn.service.youtube;
 
+import com.example.speech.aiservice.vn.model.TrackUpload;
+import com.example.speech.aiservice.vn.model.entity.Chapter;
+import com.example.speech.aiservice.vn.model.entity.Novel;
+import com.example.speech.aiservice.vn.service.repositoryService.ChapterService;
+import com.example.speech.aiservice.vn.service.repositoryService.TrackUploadService;
+import com.example.speech.aiservice.vn.service.wait.WaitService;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -16,6 +22,8 @@ import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoSnippet;
 import com.google.api.services.youtube.model.VideoStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -23,22 +31,28 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class YouTubeUploader {
 
     private final OAuthHelper oAuthHelper;
+    private final TrackUploadService trackUploadService;
+    private final WaitService waitService;
 
     @Autowired
-    public YouTubeUploader(OAuthHelper oAuthHelper) {
+    public YouTubeUploader(OAuthHelper oAuthHelper, TrackUploadService trackUploadService, WaitService waitService) {
         this.oAuthHelper = oAuthHelper;
+        this.trackUploadService = trackUploadService;
+        this.waitService = waitService;
     }
 
-    // Upload video lên YouTube
-    public String uploadVideo(String videoFilePath, String title, String description, String tags, String privacyStatus) throws Exception {
+    // Upload video to YouTube
+    public String uploadVideo(String videoFilePath, Novel novel, Chapter chapter, String title, String description, String tags, String privacyStatus) throws Exception {
+        String notification = null;
         YouTube youtubeService = oAuthHelper.getService();
 
-        // Cấu hình metadata video
+        // Configure video metadata
         Video video = new Video();
         VideoStatus status = new VideoStatus();
         status.setPrivacyStatus(privacyStatus);
@@ -53,17 +67,42 @@ public class YouTubeUploader {
         File mediaFile = new File(videoFilePath);
         FileContent mediaContent = new FileContent("video/*", mediaFile);
 
-        // Gửi request upload
-        YouTube.Videos.Insert request = youtubeService.videos().insert("snippet,status", video, mediaContent);
+        /**
+         * demo
+         */
 
-        try {
-            Video response = request.execute();
-            String videoId = response.getId();
-            String uploadedVideoURL = "https://www.youtube.com/watch?v=" + videoId;
-            System.out.printf("%s - uploaded at: %s%n", title, uploadedVideoURL);
-            return uploadedVideoURL;
-        } catch (IOException e) {
-            throw new RuntimeException("YouTube API Upload Error: " + e.getMessage(), e);
+
+        while (true) {
+            List<TrackUpload> trackUploadList = trackUploadService.findAll();
+
+
+            if (trackUploadList.isEmpty()) {
+                break;
+            }
+
+            if (trackUploadList.get(0).getChapter().getId().equals(chapter.getId())) {
+
+                TrackUpload firstTrack = trackUploadService.findByNovelAndChapter(novel.getId(), chapter.getId());
+
+                if (firstTrack != null) {
+                    trackUploadService.deleteById(firstTrack.getId());
+                }
+
+                // Send upload request
+                YouTube.Videos.Insert request = youtubeService.videos().insert("snippet,status", video, mediaContent);
+                try {
+                    Video response = request.execute();
+                    String videoId = response.getId();
+                    String uploadedVideoURL = "https://www.youtube.com/watch?v=" + videoId;
+                    System.out.printf("%s - uploaded at: %s%n", title, uploadedVideoURL);
+                    notification = uploadedVideoURL;
+                } catch (IOException e) {
+                    throw new RuntimeException("YouTube API Upload Error: " + e.getMessage(), e);
+                }
+            } else {
+                waitService.waitForSeconds(5);
+            }
         }
+        return notification;
     }
 }
