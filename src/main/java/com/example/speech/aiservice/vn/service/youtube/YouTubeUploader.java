@@ -67,19 +67,25 @@ public class YouTubeUploader {
         File mediaFile = new File(videoFilePath);
         FileContent mediaContent = new FileContent("video/*", mediaFile);
 
-        /**
-         * demo
-         */
-
-
         while (true) {
             List<TrackUpload> trackUploadList = trackUploadService.findAll();
+
+            // Arrange from smallest to largest based on chapter number
+            for (int i = 0; i < trackUploadList.size() - 1; i++) {
+                for (int j = i + 1; j < trackUploadList.size(); j++) {
+                    if (trackUploadList.get(i).getChapter().getChapterNumber() > trackUploadList.get(j).getChapter().getChapterNumber()) {
+                        TrackUpload temp = trackUploadList.get(i);
+                        trackUploadList.set(i, trackUploadList.get(j));
+                        trackUploadList.set(j, temp);
+                    }
+                }
+            }
 
             if (trackUploadList.isEmpty()) {
                 break;
             }
 
-            if (trackUploadList.get(0).getChapter().getId().equals(chapter.getId())) {
+            if (trackUploadList.get(0).getChapter().getChapterNumber() == chapter.getChapterNumber()) {
 
                 TrackUpload firstTrack = trackUploadService.findByNovelAndChapter(novel.getId(), chapter.getId());
 

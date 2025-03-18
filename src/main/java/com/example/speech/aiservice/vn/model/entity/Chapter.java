@@ -26,7 +26,6 @@ public class Chapter {
     private String link;
 
 
-
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean isScanned = false;
 
