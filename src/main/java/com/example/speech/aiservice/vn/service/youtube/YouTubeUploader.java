@@ -1,35 +1,20 @@
 package com.example.speech.aiservice.vn.service.youtube;
 
-import com.example.speech.aiservice.vn.model.TrackUpload;
+import com.example.speech.aiservice.vn.model.entity.TrackUpload;
 import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.model.entity.Novel;
-import com.example.speech.aiservice.vn.service.repositoryService.ChapterService;
 import com.example.speech.aiservice.vn.service.repositoryService.TrackUploadService;
 import com.example.speech.aiservice.vn.service.wait.WaitService;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.FileContent;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoSnippet;
 import com.google.api.services.youtube.model.VideoStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
@@ -69,7 +54,6 @@ public class YouTubeUploader {
 
         while (true) {
             List<TrackUpload> trackUploadList = trackUploadService.findAll();
-
             // Arrange from smallest to largest based on chapter number
             for (int i = 0; i < trackUploadList.size() - 1; i++) {
                 for (int j = i + 1; j < trackUploadList.size(); j++) {
@@ -80,11 +64,9 @@ public class YouTubeUploader {
                     }
                 }
             }
-
             if (trackUploadList.isEmpty()) {
                 break;
             }
-
             if (trackUploadList.get(0).getChapter().getChapterNumber() == chapter.getChapterNumber()) {
 
                 TrackUpload firstTrack = trackUploadService.findByNovelAndChapter(novel.getId(), chapter.getId());
@@ -92,7 +74,6 @@ public class YouTubeUploader {
                 if (firstTrack != null) {
                     trackUploadService.deleteById(firstTrack.getId());
                 }
-
                 // Send upload request
                 YouTube.Videos.Insert request = youtubeService.videos().insert("snippet,status", video, mediaContent);
                 try {

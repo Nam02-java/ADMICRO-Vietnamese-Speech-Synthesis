@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 
 @Service
 public class NovelService {
@@ -22,5 +24,9 @@ public class NovelService {
 
     public Novel findByTitle(String title) {
         return novelRepository.findByTitle(title);
+    }
+
+    public List<Novel> findAllNovels() {
+        return novelRepository.findAll();
     }
 }

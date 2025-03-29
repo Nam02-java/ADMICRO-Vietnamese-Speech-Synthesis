@@ -1,11 +1,11 @@
 package com.example.speech.aiservice.vn.service.workflow;
 
 import com.example.speech.aiservice.vn.dto.response.*;
-import com.example.speech.aiservice.vn.model.TrackUpload;
 import com.example.speech.aiservice.vn.model.entity.Chapter;
 import com.example.speech.aiservice.vn.model.entity.Novel;
 import com.example.speech.aiservice.vn.service.account.LoginCheckerService;
 import com.example.speech.aiservice.vn.service.account.LoginService;
+import com.example.speech.aiservice.vn.service.propertie.PropertiesService;
 import com.example.speech.aiservice.vn.service.repositoryService.ChapterService;
 import com.example.speech.aiservice.vn.service.crawl.WebCrawlerService;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
@@ -91,6 +91,7 @@ public class FullWorkFlow {
             TextToSpeechResponseDTO textToSpeechResponseDTO = speechService.textToSpeechResponseDTO(chromeDriver, textToSpeechUrl, webCrawlResponseDTO.getContentFilePath(), novel, chapter);
 
             // Create videos using mp4 files combined with photos
+            System.out.println("hello , i'm here  : " + imagePath);
             CreateVideoResponseDTO createVideoResponseDTO = videoCreationService.createVideoResponseDTO(textToSpeechResponseDTO.getFilePath(), imagePath, novel, chapter);
 
             //Upload video to youtube with youtube data API
@@ -115,3 +116,4 @@ public class FullWorkFlow {
         }
     }
 }
+

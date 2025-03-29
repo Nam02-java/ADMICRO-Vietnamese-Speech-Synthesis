@@ -5,6 +5,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.OutputStream;
+import java.util.Scanner;
+
 public class CommandListenerApp {
     public static void main(String[] args) {
         new CommandListenerApp().listenForCommands();
@@ -15,22 +20,41 @@ public class CommandListenerApp {
 
         while (true) {
             System.out.print("Enter command: ");
-            String commandInput = scanner.nextLine().trim().toUpperCase();
+            String commandInput = scanner.nextLine().trim();
 
-            CommandType commandType = CommandType.fromString(commandInput);
+            CommandType commandType = CommandType.fromString(commandInput.toUpperCase());
 
             if (commandType == CommandType.STOP) {
                 System.out.println("STOP command received! Stopping workflow...");
                 sendStopRequest();
+            } else if (commandType == CommandType.UPDATE_ALL) {
+                System.out.println("Update all command received!");
+                sendUpdateAllRequest();
+            } else if (isValidURL(commandInput)) {
+                System.out.println("Valid URL detected! Sending update request...");
+                sendScanRequest(commandInput);
             } else {
-                System.out.println("Invalid command! Please enter a valid command (e.g., STOP).");
+                System.out.println("Invalid command! Please enter a valid command (e.g., STOP or a valid URL).");
             }
         }
     }
 
     private void sendStopRequest() {
+        sendPostRequest("http://localhost:8080/workflow/stop", "{}");
+    }
+
+    private void sendScanRequest(String url) {
+        String jsonPayload = "{\"url\": \"" + url + "\"}";
+        sendPostRequest("http://localhost:8080/workflow/scan", jsonPayload);
+    }
+
+    private void sendUpdateAllRequest() {
+        sendPostRequest("http://localhost:8080/workflow/update-all", "{}");
+    }
+
+    private void sendPostRequest(String endpoint, String payload) {
         try {
-            URL url = new URL("http://localhost:8080/workflow/stop");
+            URL url = new URL(endpoint);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setInstanceFollowRedirects(false);
@@ -39,14 +63,18 @@ public class CommandListenerApp {
             conn.setRequestProperty("Content-Type", "application/json");
 
             OutputStream os = conn.getOutputStream();
-            os.write("{}".getBytes());
+            os.write(payload.getBytes());
             os.flush();
             os.close();
 
             System.out.println("Response Code: " + conn.getResponseCode());
         } catch (Exception e) {
-            System.out.println("Error: Unable to send STOP request!");
+            System.out.println("Error: Unable to send request!");
             e.printStackTrace();
         }
+    }
+
+    private boolean isValidURL(String input) {
+        return input.matches("^https?://chivi\\.app/wn/books/\\w+$");
     }
 }

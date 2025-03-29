@@ -1,9 +1,8 @@
 package com.example.speech.aiservice.vn.service.console;
 
 public enum CommandType {
-//    ABORT,
-//    PAUSE,
-//    RESUME,
+
+    UPDATE_ALL,
     STOP;
 
     public static CommandType fromString(String command) {

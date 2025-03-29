@@ -4,23 +4,46 @@ import com.example.speech.aiservice.vn.dto.response.NovelInfoResponseDTO;
 import com.example.speech.aiservice.vn.model.entity.*;
 import com.example.speech.aiservice.vn.model.repository.ChapterRepository;
 import com.example.speech.aiservice.vn.model.repository.NovelRepository;
+import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
+import com.example.speech.aiservice.vn.service.propertie.PropertiesService;
+import com.example.speech.aiservice.vn.service.queue.ScanQueue;
 import com.example.speech.aiservice.vn.service.repositoryService.*;
 import com.example.speech.aiservice.vn.service.executor.MyRunnableService;
 import com.example.speech.aiservice.vn.service.google.GoogleChromeLauncherService;
 import com.example.speech.aiservice.vn.service.schedule.TimeDelay;
 import com.example.speech.aiservice.vn.service.selenium.WebDriverLauncherService;
 import com.example.speech.aiservice.vn.service.wait.WaitService;
+import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -40,14 +63,17 @@ public class PreProcessorService {
     private final ExecutorService executorService;
     private final ApplicationContext applicationContext;
     private final SeleniumConfigService seleniumConfigService;
+    private final FileNameService fileNameService;
     private volatile boolean stop = false; // Volatile variable to track STOP command - true = stopping
     private volatile String imagePath = null;
     private final TaskScheduler taskScheduler;
     private volatile ScheduledFuture<?> scheduledTask;
     private final TimeDelay timeDelay;
+    private final PropertiesService propertiesService;
+    private final ScanQueue scanQueue;
 
     @Autowired
-    public PreProcessorService(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, WaitService waitService, NovelRepository novelRepository, ChapterRepository chapterRepository, NovelService novelService, ChapterService chapterService, TrackedNovelService trackedNovelService,  ApplicationContext applicationContext, SeleniumConfigService seleniumConfigService, TaskScheduler taskScheduler, TimeDelay timeDelay) {
+    public PreProcessorService(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, WaitService waitService, NovelRepository novelRepository, ChapterRepository chapterRepository, NovelService novelService, ChapterService chapterService, TrackedNovelService trackedNovelService, ApplicationContext applicationContext, SeleniumConfigService seleniumConfigService, FileNameService fileNameService, TaskScheduler taskScheduler, TimeDelay timeDelay, PropertiesService propertiesService, ScanQueue scanQueue) {
         this.googleChromeLauncherService = googleChromeLauncherService;
         this.webDriverLauncherService = webDriverLauncherService;
         this.waitService = waitService;
@@ -56,8 +82,11 @@ public class PreProcessorService {
         this.trackedNovelService = trackedNovelService;
         this.applicationContext = applicationContext;
         this.seleniumConfigService = seleniumConfigService;
+        this.fileNameService = fileNameService;
         this.taskScheduler = taskScheduler;
         this.timeDelay = timeDelay;
+        this.propertiesService = propertiesService;
+        this.scanQueue = scanQueue;
         this.executorService = Executors.newFixedThreadPool(3);
     }
 
@@ -80,7 +109,6 @@ public class PreProcessorService {
 
     public void executeWorkflow() {
         NovelInfoResponseDTO novelInfo = scanNovelTitle();
-        String imagePath = getValidImagePath();
         fetchFullPageContent(novelInfo);
 
         List<SeleniumConfig> threadConfigs = seleniumConfigService.getAllConfigs();
@@ -88,6 +116,12 @@ public class PreProcessorService {
         int maxThreads = 3;
 
         if (!stop) {
+
+            /**
+             * get image novel
+             */
+            imagePath = getValidImagePath(null, novelInfo);
+
             System.out.println("stop is false");
             while (true) {
                 Novel novel = novelService.findByTitle(novelInfo.getTitle());
@@ -96,9 +130,10 @@ public class PreProcessorService {
                 if (unscannedChapters.isEmpty()) {
                     System.out.println("⚡ All chapters have been scanned, scheduling next check...");
                     if (novel != null) {
-                        trackedNovelService.trackNovel(novel);
+                        //trackedNovelService.trackNovel(novel);
+                        trackedNovelService.clearTracking();
                     }
-                    timeDelay.setSecond(10000);
+                    timeDelay.setSecond(1000);
                     return;
                 }
 
@@ -114,6 +149,7 @@ public class PreProcessorService {
 
                     Chapter chapter = unscannedChapters.get(i);
                     SeleniumConfig config = threadConfigs.get(i);
+
 
                     FullWorkFlow fullWorkFlow = applicationContext.getBean(FullWorkFlow.class);
                     MyRunnableService myRunnableService = new MyRunnableService(fullWorkFlow, config.getPort(), config.getSeleniumFileName(), chapter.getNovel(), chapter, imagePath);
@@ -141,7 +177,6 @@ public class PreProcessorService {
     }
 
     private NovelInfoResponseDTO scanNovelTitle() {
-        Scanner scanner = new Scanner(System.in);
         String inputLink;
 
         Optional<TrackedNovel> trackedNovelOptional = trackedNovelService.getTrackedNovel();
@@ -149,8 +184,8 @@ public class PreProcessorService {
         if (!trackedNovelOptional.isPresent()) {
             while (true) {
 
-                System.out.println("Enter the novel link to scan: ");
-                inputLink = scanner.nextLine().trim();
+                inputLink = scanQueue.takeFromQueue();
+                scanQueue.printQueue();
 
                 if (!inputLink.isEmpty()) {
                     try {
@@ -173,18 +208,66 @@ public class PreProcessorService {
         }
     }
 
-    private String getValidImagePath() {
-        Scanner scanner = new Scanner(System.in);
-        String input;
-        if (imagePath == null) {
-            while (true) {
-                System.out.println("Enter image path: ");
-                input = scanner.nextLine().trim();
-                imagePath = input;
-                return imagePath;
+
+    private String getValidImagePath(WebDriver driver, NovelInfoResponseDTO novelInfoResponseDTO) {
+
+        String directoryPath = propertiesService.getImageDirectory();
+        String baseFileName = novelInfoResponseDTO.getTitle();
+        String extension = propertiesService.getImageExtension();
+
+        try {
+            Path dirPath = Paths.get(directoryPath);
+            if (Files.exists(dirPath) && Files.isDirectory(dirPath)) {
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*" + extension)) {
+                    for (Path filePath : stream) {
+                        String fileName = filePath.getFileName().toString();
+                        if (fileName.contains(baseFileName)) {
+                            System.out.println("✅ Found existing image: " + filePath);
+                            return filePath.toString();
+                        }
+                    }
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return imagePath;
+
+        if (driver == null) {
+            System.out.println("❌ WebDriver is null, skipping image extraction...");
+            return null;
+        }
+
+        IIORegistry.getDefaultInstance().registerServiceProvider(new WebPImageReaderSpi());
+
+        WebElement imgElement = driver.findElement(By.cssSelector("img.svelte-34gr27"));
+        String imgUrl = imgElement.getAttribute("src");
+        System.out.println("Image URL: " + imgUrl);
+
+        String imageFilePath = fileNameService.getAvailableFileName(directoryPath, baseFileName, extension);
+
+        try {
+            URL url = new URL(imgUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("Referer", "https://chivi.app");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+            InputStream inputStream = connection.getInputStream();
+            BufferedImage image = ImageIO.read(inputStream);
+
+            if (image == null) {
+                System.out.println("Failed to decode image. The image might be in WebP format.");
+                return null;
+            }
+
+            ImageIO.write(image, "png", new File(imageFilePath));
+
+            System.out.println("Image saved as: " + imageFilePath);
+
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return imageFilePath;
     }
 
     private void fetchFullPageContent(NovelInfoResponseDTO novelInfo) {
@@ -205,6 +288,12 @@ public class PreProcessorService {
                 driver = webDriverLauncherService.initWebDriver(seleniumConfig.getPort());
 
                 driver.get(novelInfo.getLink());
+
+                waitService.waitForSeconds(1);
+                /**
+                 * get image novel
+                 */
+                imagePath = getValidImagePath(driver, novelInfo);
 
                 waitService.waitForSeconds(1);
                 driver.findElement(By.xpath("//*[@id=\"svelte\"]/div[1]/main/article[1]/div[2]/div[1]/svelte-css-wrapper/div/div[1]/button")).click();
