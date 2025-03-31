@@ -1,4 +1,4 @@
-package com.example.speech.aiservice.vn.controller.http.restful;
+package com.example.speech.aiservice.vn.controller;
 
 import com.example.speech.aiservice.vn.dto.request.WorkFlowScanRequestDTO;
 import com.example.speech.aiservice.vn.service.queue.ScanQueue;

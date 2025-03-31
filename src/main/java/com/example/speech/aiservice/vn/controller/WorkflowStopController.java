@@ -1,4 +1,4 @@
-package com.example.speech.aiservice.vn.controller.http.restful;
+package com.example.speech.aiservice.vn.controller;
 
 import com.example.speech.aiservice.vn.service.workflow.PreProcessorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/workflow")
-public class WorkflowController {
+public class WorkflowStopController  {
 
     private final PreProcessorService preProcessorService;
 
     @Autowired
-    public WorkflowController(PreProcessorService preProcessorService) {
+    public WorkflowStopController(PreProcessorService preProcessorService) {
         this.preProcessorService = preProcessorService;
     }
 

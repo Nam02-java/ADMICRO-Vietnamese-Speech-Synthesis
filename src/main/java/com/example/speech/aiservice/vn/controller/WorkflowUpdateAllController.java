@@ -1,4 +1,4 @@
-package com.example.speech.aiservice.vn.controller.http.restful;
+package com.example.speech.aiservice.vn.controller;
 
 import com.example.speech.aiservice.vn.model.entity.Novel;
 import com.example.speech.aiservice.vn.service.queue.ScanQueue;
