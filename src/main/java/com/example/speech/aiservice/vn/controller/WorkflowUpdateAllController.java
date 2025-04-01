@@ -1,9 +1,9 @@
 package com.example.speech.aiservice.vn.controller;
 
-import com.example.speech.aiservice.vn.model.entity.Novel;
+import com.example.speech.aiservice.vn.model.entity.novel.Novel;
 import com.example.speech.aiservice.vn.service.queue.ScanQueue;
-import com.example.speech.aiservice.vn.service.repositoryService.NovelService;
-import com.example.speech.aiservice.vn.service.workflow.PreProcessorService;
+import com.example.speech.aiservice.vn.service.repositoryService.novel.NovelService;
+import com.example.speech.aiservice.vn.service.workflow.previous.SingleNovelPreProcessorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,13 +16,13 @@ import java.util.List;
 @RequestMapping("/workflow")
 public class WorkflowUpdateAllController {
 
-    private final PreProcessorService preProcessorService;
+    private final SingleNovelPreProcessorService singleNovelPreProcessorService;
     private final ScanQueue scanQueue;
     private final NovelService novelService;
 
     @Autowired
-    public WorkflowUpdateAllController(PreProcessorService preProcessorService, ScanQueue scanQueue, NovelService novelService) {
-        this.preProcessorService = preProcessorService;
+    public WorkflowUpdateAllController(SingleNovelPreProcessorService singleNovelPreProcessorService, ScanQueue scanQueue, NovelService novelService) {
+        this.singleNovelPreProcessorService = singleNovelPreProcessorService;
         this.scanQueue = scanQueue;
         this.novelService = novelService;
     }

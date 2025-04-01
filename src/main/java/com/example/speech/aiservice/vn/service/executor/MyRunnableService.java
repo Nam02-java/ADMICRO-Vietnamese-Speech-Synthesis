@@ -1,8 +1,8 @@
 package com.example.speech.aiservice.vn.service.executor;
 
-import com.example.speech.aiservice.vn.model.entity.Chapter;
-import com.example.speech.aiservice.vn.model.entity.Novel;
-import com.example.speech.aiservice.vn.service.workflow.FullWorkFlow;
+import com.example.speech.aiservice.vn.model.entity.chapter.Chapter;
+import com.example.speech.aiservice.vn.model.entity.novel.Novel;
+import com.example.speech.aiservice.vn.service.workflow.full.FullWorkFlow;
 
 public class MyRunnableService implements Runnable {
     private final FullWorkFlow fullWorkFlow;

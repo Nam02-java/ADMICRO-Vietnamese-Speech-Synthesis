@@ -2,9 +2,9 @@ package com.example.speech.aiservice.vn.service.account;
 
 import com.example.speech.aiservice.vn.dto.response.LoginResponseDTO;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import com.example.speech.aiservice.vn.model.entity.User;
+import com.example.speech.aiservice.vn.model.entity.user.User;
 import com.example.speech.aiservice.vn.service.propertie.PropertiesService;
-import com.example.speech.aiservice.vn.service.repositoryService.UserService;
+import com.example.speech.aiservice.vn.service.repositoryService.user.UserService;
 import com.example.speech.aiservice.vn.service.wait.WaitService;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;

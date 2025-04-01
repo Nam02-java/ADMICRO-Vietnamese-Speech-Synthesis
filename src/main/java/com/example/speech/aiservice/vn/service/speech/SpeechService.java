@@ -1,8 +1,8 @@
 package com.example.speech.aiservice.vn.service.speech;
 
 import com.example.speech.aiservice.vn.dto.response.TextToSpeechResponseDTO;
-import com.example.speech.aiservice.vn.model.entity.Chapter;
-import com.example.speech.aiservice.vn.model.entity.Novel;
+import com.example.speech.aiservice.vn.model.entity.chapter.Chapter;
+import com.example.speech.aiservice.vn.model.entity.novel.Novel;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileReaderService;
 import com.example.speech.aiservice.vn.service.google.GoogleAudioDownloaderService;

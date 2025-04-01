@@ -1,8 +1,8 @@
 package com.example.speech.aiservice.vn.service.crawl;
 
 import com.example.speech.aiservice.vn.dto.response.WebCrawlResponseDTO;
-import com.example.speech.aiservice.vn.model.entity.Chapter;
-import com.example.speech.aiservice.vn.model.entity.Novel;
+import com.example.speech.aiservice.vn.model.entity.chapter.Chapter;
+import com.example.speech.aiservice.vn.model.entity.novel.Novel;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.filehandler.FileWriterService;
 import com.example.speech.aiservice.vn.service.propertie.PropertiesService;

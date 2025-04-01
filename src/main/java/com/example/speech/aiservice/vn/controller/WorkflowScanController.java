@@ -2,7 +2,7 @@ package com.example.speech.aiservice.vn.controller;
 
 import com.example.speech.aiservice.vn.dto.request.WorkFlowScanRequestDTO;
 import com.example.speech.aiservice.vn.service.queue.ScanQueue;
-import com.example.speech.aiservice.vn.service.workflow.PreProcessorService;
+import com.example.speech.aiservice.vn.service.workflow.previous.SingleNovelPreProcessorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/workflow")
 public class WorkflowScanController {
 
-    private final PreProcessorService preProcessorService;
+    private final SingleNovelPreProcessorService singleNovelPreProcessorService;
     private final ScanQueue scanQueue;
 
     @Autowired
-    public WorkflowScanController(PreProcessorService preProcessorService, ScanQueue scanQueue) {
-        this.preProcessorService = preProcessorService;
+    public WorkflowScanController(SingleNovelPreProcessorService singleNovelPreProcessorService, ScanQueue scanQueue) {
+        this.singleNovelPreProcessorService = singleNovelPreProcessorService;
         this.scanQueue = scanQueue;
     }
 

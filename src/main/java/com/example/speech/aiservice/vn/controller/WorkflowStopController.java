@@ -1,6 +1,6 @@
 package com.example.speech.aiservice.vn.controller;
 
-import com.example.speech.aiservice.vn.service.workflow.PreProcessorService;
+import com.example.speech.aiservice.vn.service.workflow.previous.SingleNovelPreProcessorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,17 +11,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/workflow")
 public class WorkflowStopController  {
 
-    private final PreProcessorService preProcessorService;
+    private final SingleNovelPreProcessorService singleNovelPreProcessorService;
 
     @Autowired
-    public WorkflowStopController(PreProcessorService preProcessorService) {
-        this.preProcessorService = preProcessorService;
+    public WorkflowStopController(SingleNovelPreProcessorService singleNovelPreProcessorService) {
+        this.singleNovelPreProcessorService = singleNovelPreProcessorService;
     }
 
     @PostMapping("/stop")
     public ResponseEntity<String> stopWorkflow() {
         System.out.println("Received STOP request!");
-        preProcessorService.stopConditions();
+        singleNovelPreProcessorService.stopConditions();
         return ResponseEntity.ok("Workflow stopped successfully!");
     }
 }

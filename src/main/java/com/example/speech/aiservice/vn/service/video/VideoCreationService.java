@@ -1,8 +1,8 @@
 package com.example.speech.aiservice.vn.service.video;
 
 import com.example.speech.aiservice.vn.dto.response.CreateVideoResponseDTO;
-import com.example.speech.aiservice.vn.model.entity.Chapter;
-import com.example.speech.aiservice.vn.model.entity.Novel;
+import com.example.speech.aiservice.vn.model.entity.chapter.Chapter;
+import com.example.speech.aiservice.vn.model.entity.novel.Novel;
 import com.example.speech.aiservice.vn.service.filehandler.FileNameService;
 import com.example.speech.aiservice.vn.service.propertie.PropertiesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +12,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.List;
 
 @Service
 public class VideoCreationService {
