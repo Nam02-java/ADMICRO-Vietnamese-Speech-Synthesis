@@ -72,5 +72,9 @@ public class ChapterService {
         chapter.setScanned(true);
         chapterRepository.save(chapter);
     }
+
+    public long getTotalChapters(long novelId) {
+        return chapterRepository.countChaptersByNovelId(novelId);
+    }
 }
 

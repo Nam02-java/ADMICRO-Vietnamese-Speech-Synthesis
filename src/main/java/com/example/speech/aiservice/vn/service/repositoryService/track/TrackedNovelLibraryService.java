@@ -9,6 +9,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +57,6 @@ public class TrackedNovelLibraryService {
         System.out.println("Application is shutting down. Clearing tracked novel table...");
         trackedLibraryRepository.deleteAll();
     }
-
     @PostConstruct
     public void clearTrackingOnStartup() {
         System.out.println("Application started. Clearing tracked novel table...");

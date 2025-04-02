@@ -3,6 +3,8 @@ package com.example.speech.aiservice.vn.model.repository.chapter;
 import com.example.speech.aiservice.vn.model.entity.chapter.Chapter;
 import com.example.speech.aiservice.vn.model.entity.novel.Novel;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,5 +24,8 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     List<Chapter> findTop3ByIsScannedFalseOrderByChapterNumberAsc();
 
     List<Chapter> findTop3ByNovelIdAndIsScannedFalseOrderByChapterNumberAsc(Long novelId);
+
+    @Query("SELECT COUNT(c) FROM Chapter c WHERE c.novel.id = :novelId")
+    long countChaptersByNovelId(@Param("novelId") long novelId);
 }
 

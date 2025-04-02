@@ -74,6 +74,8 @@ public class LibraryPreProcessorService {
     private int currentPage = 1;
     private final PropertiesService propertiesService;
     private final ImageService imageService;
+    private long totalChaptersFromUrl;
+    private long totalChaptersFromDatabase;
 
     @Autowired
     public LibraryPreProcessorService(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, WaitService waitService, NovelService novelService, ChapterService chapterService, TrackedNovelLibraryService trackedNovelLibraryService, ApplicationContext applicationContext, SeleniumConfigLibaryService seleniumConfigLibaryService, FileNameService fileNameService, TaskScheduler taskScheduler, TimeDelay timeDelay, PropertiesService propertiesService, ImageService imageService) {
@@ -137,7 +139,7 @@ public class LibraryPreProcessorService {
                 /**
                  * get image novel
                  */
-                imagePath = imageService.getValidImagePath(null,novelInfo);
+                imagePath = imageService.getValidImagePath(null, novelInfo);
 
                 List<SeleniumConfigLibary> threadConfigs = seleniumConfigLibaryService.getAllConfigs();
                 List<Chapter> unscannedChapters;
@@ -227,97 +229,63 @@ public class LibraryPreProcessorService {
         return null;
     }
 
-    private String getValidImagePath(WebDriver driver, NovelInfoResponseDTO novelInfoResponseDTO) {
-
-        String directoryPath = propertiesService.getImageDirectory();
-        String baseFileName = novelInfoResponseDTO.getTitle();
-        String extension = propertiesService.getImageExtension();
-
-        try {
-            Path dirPath = Paths.get(directoryPath);
-            if (Files.exists(dirPath) && Files.isDirectory(dirPath)) {
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*" + extension)) {
-                    for (Path filePath : stream) {
-                        String fileName = filePath.getFileName().toString();
-                        if (fileName.contains(baseFileName)) {
-                            System.out.println("✅ Found existing image: " + filePath);
-                            return filePath.toString();
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (driver == null) {
-            System.out.println("❌ WebDriver is null, skipping image extraction...");
-            return null;
-        }
-
-        IIORegistry.getDefaultInstance().registerServiceProvider(new WebPImageReaderSpi());
-
-        WebElement imgElement = driver.findElement(By.cssSelector("img.svelte-34gr27"));
-        String imgUrl = imgElement.getAttribute("src");
-        System.out.println("Image URL: " + imgUrl);
-
-        String imageFilePath = fileNameService.getAvailableFileName(directoryPath, baseFileName, extension);
-
-        try {
-            URL url = new URL(imgUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("Referer", "https://chivi.app");
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-            InputStream inputStream = connection.getInputStream();
-            BufferedImage image = ImageIO.read(inputStream);
-
-            if (image == null) {
-                System.out.println("Failed to decode image. The image might be in WebP format.");
-                return null;
-            }
-
-            ImageIO.write(image, "png", new File(imageFilePath));
-
-            System.out.println("Image saved as: " + imageFilePath);
-
-            inputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return imageFilePath;
-    }
-
 
     private void fetchFullPageContent(NovelInfoResponseDTO novelInfo) {
 
         WebDriver driver = null;
+        String defaultPort = propertiesService.getDefaultPort();
 
-        if (!novelService.isNovelExists(novelInfo.getTitle()) || trackedNovelLibraryService.isTrackNovellExists(novelInfo.getTitle())) {
+        scanChapter(driver, novelInfo, defaultPort);
 
+    }
+
+    private void scanChapter(WebDriver driver, NovelInfoResponseDTO novelInfo, String defaultPort) {
+
+        try {
+            SeleniumConfigLibary seleniumConfig = seleniumConfigLibaryService.getConfigByPort(propertiesService.getDefaultPort());
+            if (seleniumConfig == null) {
+                System.out.println("Could not find configuration with port " + propertiesService.getDefaultPort());
+                System.exit(1);
+            }
             try {
-                SeleniumConfigLibary seleniumConfig = seleniumConfigLibaryService.getConfigByPort(propertiesService.getDefaultPort());
-                if (seleniumConfig == null) {
-                    System.out.println("Could not find configuration with port " + propertiesService.getDefaultPort());
-                    System.exit(1);
-                }
-                try {
-                    googleChromeLauncherService.openGoogleChrome(seleniumConfig.getPort(), seleniumConfig.getSeleniumFileName());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                driver = webDriverLauncherService.initWebDriver(seleniumConfig.getPort());
+                googleChromeLauncherService.openGoogleChrome(seleniumConfig.getPort(), seleniumConfig.getSeleniumFileName());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            driver = webDriverLauncherService.initWebDriver(seleniumConfig.getPort());
+
+            waitService.waitForSeconds(1);
+
+            driver.get(novelInfo.getLink());
+
+            /**
+             * get total chapter number on novel's website
+             */
+            waitService.waitForSeconds(1);
+            driver.findElement(By.xpath("//*[@id=\"svelte\"]/div[1]/main/article[1]/div[2]/div[1]/svelte-css-wrapper/div/div[1]/button")).click();
+            waitService.waitForSeconds(5);
+            WebElement spanElement = driver.findElement(By.cssSelector("span.ctext.svelte-1d9icyk"));
+            totalChaptersFromUrl = Long.parseLong(spanElement.getText());
+            System.out.println("Total chapters from \"" + novelInfo.getTitle() + "\" (URL: " + novelInfo.getLink() + "): " + totalChaptersFromUrl);
+
+            /**
+             * get total chapter number in database
+             */
+            Novel novel = novelService.findByTitle(novelInfo.getTitle());
+            totalChaptersFromDatabase = 0;
+            if (!(novel == null)) {
+                long novelId = novel.getId();
+                totalChaptersFromDatabase = chapterService.getTotalChapters(novelId);
+            }
+            System.out.println("Total chapters from \"" + novelInfo.getTitle() + "\" (Database): " + totalChaptersFromDatabase);
+
+            if (totalChaptersFromDatabase < totalChaptersFromUrl) {
 
                 waitService.waitForSeconds(1);
-
-                driver.get(novelInfo.getLink());
-
-                waitService.waitForSeconds(1);
-
                 /**
                  * get image novel
                  */
-                imagePath = imageService.getValidImagePath(driver,novelInfo);
+                imagePath = imageService.getValidImagePath(driver, novelInfo);
 
                 waitService.waitForSeconds(1);
                 driver.findElement(By.xpath("//*[@id=\"svelte\"]/div[1]/main/article[1]/div[2]/div[1]/svelte-css-wrapper/div/div[1]/button")).click();
@@ -328,7 +296,7 @@ public class LibraryPreProcessorService {
                 driver.navigate().refresh();
                 waitService.waitForSeconds(3);
 
-                Novel novel = new Novel(novelInfo.getTitle(), novelInfo.getLink());
+                novel = new Novel(novelInfo.getTitle(), novelInfo.getLink());
                 if (!novelService.isNovelExists(novel.getTitle())) {
                     novelService.saveNovel(novel);
                 }
@@ -401,16 +369,15 @@ public class LibraryPreProcessorService {
                         e.printStackTrace();
                     }
                 }
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                googleChromeLauncherService.shutdown();
-                webDriverLauncherService.shutDown(driver);
+            } else {
+                System.out.println("No new chapters found on the : " + novelInfo.getLink());
             }
-        } else {
-            System.out.println(String.format("%s with link: %s already exists in the database system, stop crawling from the website! ", novelInfo.getTitle(), novelInfo.getLink()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            googleChromeLauncherService.shutdown();
+            webDriverLauncherService.shutDown(driver);
         }
     }
 

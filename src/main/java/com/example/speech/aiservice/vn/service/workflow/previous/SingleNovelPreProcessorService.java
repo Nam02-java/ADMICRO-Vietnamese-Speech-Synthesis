@@ -72,6 +72,8 @@ public class SingleNovelPreProcessorService {
     private final PropertiesService propertiesService;
     private final ScanQueue scanQueue;
     private final ImageService imageService;
+    private long totalChaptersFromUrl;
+    private long totalChaptersFromDatabase;
 
     @Autowired
     public SingleNovelPreProcessorService(GoogleChromeLauncherService googleChromeLauncherService, WebDriverLauncherService webDriverLauncherService, WaitService waitService, NovelService novelService, ChapterService chapterService, TrackedNovelSingleService trackedNovelService, ApplicationContext applicationContext, SeleniumConfigSingleService seleniumConfigSingleService, FileNameService fileNameService, TaskScheduler taskScheduler, TimeDelay timeDelay, PropertiesService propertiesService, ScanQueue scanQueue, ImageService imageService) {
@@ -122,7 +124,7 @@ public class SingleNovelPreProcessorService {
             /**
              * get image novel
              */
-            imagePath = imageService.getValidImagePath(null,novelInfo);
+            imagePath = imageService.getValidImagePath(null, novelInfo);
 
             System.out.println("stop is false");
             while (true) {
@@ -216,27 +218,53 @@ public class SingleNovelPreProcessorService {
         WebDriver driver = null;
         String defaultPort = propertiesService.getDefaultPort();
 
-        if (!novelService.isNovelExists(novelInfo.getTitle()) || trackedNovelService.isTrackNovellExists(novelInfo.getTitle())) {
+        scanChapter(driver, novelInfo, defaultPort);
 
-            try {
-                SeleniumConfigSingle seleniumConfig = seleniumConfigSingleService.getConfigByPort(defaultPort);
-                if (seleniumConfig == null) {
-                    System.out.println("Could not find configuration with port " + defaultPort);
-                    System.exit(1);
-                }
+    }
 
-                googleChromeLauncherService.openGoogleChrome(seleniumConfig.getPort(), seleniumConfig.getSeleniumFileName());
-                driver = webDriverLauncherService.initWebDriver(seleniumConfig.getPort());
+    private void scanChapter(WebDriver driver, NovelInfoResponseDTO novelInfo, String defaultPort) {
+        try {
+            SeleniumConfigSingle seleniumConfig = seleniumConfigSingleService.getConfigByPort(defaultPort);
+            if (seleniumConfig == null) {
+                System.out.println("Could not find configuration with port " + defaultPort);
+                System.exit(1);
+            }
 
-                waitService.waitForSeconds(1);
+            googleChromeLauncherService.openGoogleChrome(seleniumConfig.getPort(), seleniumConfig.getSeleniumFileName());
+            driver = webDriverLauncherService.initWebDriver(seleniumConfig.getPort());
 
-                driver.get(novelInfo.getLink());
+            waitService.waitForSeconds(1);
+
+            driver.get(novelInfo.getLink());
+
+            /**
+             * get total chapter number on novel's website
+             */
+            waitService.waitForSeconds(1);
+            driver.findElement(By.xpath("//*[@id=\"svelte\"]/div[1]/main/article[1]/div[2]/div[1]/svelte-css-wrapper/div/div[1]/button")).click();
+            waitService.waitForSeconds(5);
+            WebElement spanElement = driver.findElement(By.cssSelector("span.ctext.svelte-1d9icyk"));
+            totalChaptersFromUrl = Long.parseLong(spanElement.getText());
+            System.out.println("Total chapters from \"" + novelInfo.getTitle() + "\" (URL: " + novelInfo.getLink() + "): " + totalChaptersFromUrl);
+
+            /**
+             * get total chapter number in database
+             */
+            Novel novel = novelService.findByTitle(novelInfo.getTitle());
+            totalChaptersFromDatabase = 0;
+            if (!(novel == null)) {
+                long novelId = novel.getId();
+                totalChaptersFromDatabase = chapterService.getTotalChapters(novelId);
+            }
+
+            System.out.println("Total chapters from \"" + novelInfo.getTitle() + "\" (Database): " + totalChaptersFromDatabase);
+            if (totalChaptersFromDatabase < totalChaptersFromUrl) {
 
                 waitService.waitForSeconds(1);
                 /**
                  * get image novel
                  */
-                imagePath = imageService.getValidImagePath(driver,novelInfo);
+                imagePath = imageService.getValidImagePath(driver, novelInfo);
 
                 waitService.waitForSeconds(1);
                 driver.findElement(By.xpath("//*[@id=\"svelte\"]/div[1]/main/article[1]/div[2]/div[1]/svelte-css-wrapper/div/div[1]/button")).click();
@@ -251,7 +279,7 @@ public class SingleNovelPreProcessorService {
 //            String novelTitle = novelElement.getText();
 //            String novelLink = novelElement.findElement(By.xpath("./parent::a")).getAttribute("href");
 
-                Novel novel = new Novel(novelInfo.getTitle(), novelInfo.getLink());
+                novel = new Novel(novelInfo.getTitle(), novelInfo.getLink());
                 if (!novelService.isNovelExists(novel.getTitle())) {
                     novelService.saveNovel(novel);
                 }
@@ -324,16 +352,15 @@ public class SingleNovelPreProcessorService {
                         e.printStackTrace();
                     }
                 }
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                googleChromeLauncherService.shutdown();
-                webDriverLauncherService.shutDown(driver);
+            } else {
+                System.out.println("No new chapters found on the : " + novelInfo.getLink());
             }
-        } else {
-            System.out.println(String.format("%s with link: %s already exists in the database system, stop crawling from the website! ", novelInfo.getTitle(), novelInfo.getLink()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            googleChromeLauncherService.shutdown();
+            webDriverLauncherService.shutDown(driver);
         }
     }
 
